@@ -25,11 +25,16 @@ router.post('/cost', (req, res) => {
 router.post('/tolls', (req, res) => {
     const { distanceKm } = req.body;
 
-    if (!distanceKm) {
+    // CORREÇÃO: Garante que o número 0 seja aceito como um parâmetro válido
+    if (distanceKm === undefined || distanceKm === null) {
         return res.status(400).json({ error: 'Distância é necessária.' });
     }
 
-    // Define 1 pedágio a cada 80km rodados (mínimo de 1 se a viagem for menor, ou 0 se for zero)
+    if (typeof distanceKm !== 'number' || distanceKm < 0) {
+        return res.status(400).json({ error: 'A distância deve ser um número maior ou igual a zero.' });
+    }
+
+    // Define 1 pedágio a cada 80km rodados (mínimo de 1 se a viagem for maior que zero mas menor que 80, ou 0 se for zero)
     const tollCount = distanceKm > 0 ? Math.max(1, Math.floor(distanceKm / 80)) : 0;
     const pricePerToll = 12.00;
     const totalTollCost = tollCount * pricePerToll;

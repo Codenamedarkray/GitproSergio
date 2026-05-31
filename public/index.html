@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo TRIP - Travel Routing</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        #root { width: 100%; max-width: 500px; }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Copiaremos a lógica do seu tripModule.jsx integrado com a API real aqui abaixo:
+        
+        function TripModule() {
+          const [screen, setScreen] = React.useState('splash'); // Usando React.useState por causa do CDN
+          const [username, setUsername] = React.useState('');
+          const [password, setPassword] = React.useState('');
+          
+          const [form, setForm] = React.useState({ origin: '', destination: '', km: '', autonomy: '', gasPrice: '5.50', alcPrice: '3.80' });
+          const [results, setResults] = React.useState(null);
+
+          React.useEffect(() => {
+            if (screen === 'splash') {
+              const timer = setTimeout(() => setScreen('login'), 2500);
+              return () => clearTimeout(timer);
+            }
+          }, [screen]);
+
+          const handleLogin = (e) => {
+            e.preventDefault();
+            if (username === 'admin' && password === '1234') {
+              setScreen('dashboard');
+            } else {
+              alert('Usuário ou senha incorretos!');
+            }
+          };
+
+          // CONEXÃO REAL COM A SUA API NODE.JS (Módulo TRIP)
+          const handleCalculate = async (e) => {
+            e.preventDefault();
+            const API_URL = 'http://localhost:3000/api/v1/trip';
+            const distanceKm = parseFloat(form.km);
+            const autonomyKmL = parseFloat(form.autonomy);
+            const priceGasoline = parseFloat(form.gasPrice);
+            const priceAlcohol = parseFloat(form.alcPrice);
+            const averageSpeedKmH = 90;
+
+            try {
+              const [resCost, resTolls, resTime] = await Promise.all([
+                fetch(`${API_URL}/cost`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ distanceKm, autonomyKmL, priceGasoline, priceAlcohol })
+                }),
+                fetch(`${API_URL}/tolls`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ distanceKm })
+                }),
+                fetch(`${API_URL}/time`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ distanceKm, averageSpeedKmH })
+                })
+              ]);
+
+              if (!resCost.ok || !resTolls.ok || !resTime.ok) {
+                throw new Error('Erro ao processar dados nos endpoints da API.');
+              }
+
+              const dataCost = await resCost.json();
+              const dataTolls = await resTolls.json();
+              const dataTime = await resTime.json();
+
+              setResults({
+                liters: dataCost.litersNeeded,
+                gasCost: dataCost.costGasoline,
+                alcCost: dataCost.costAlcohol,
+                tolls: dataTolls.tollCount,
+                tollCost: dataTolls.totalTollCost,
+                time: dataTime.formattedTime
+              });
+
+            } catch (error) {
+              alert(error.message);
+            }
+          };
+
+          return (
+            <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+              {screen === 'splash' && (
+                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <h2>🚗 TRIP MODULE</h2>
+                  <p>Travel Routing & Cost Predictor</p>
+                  <div style={{ color: '#666', fontSize: '14px' }}>Carregando sistema...</div>
+                </div>
+              )}
+
+              {screen === 'login' && (
+                <form onSubmit={handleLogin}>
+                  <h3>🔐 Login do Sistema</h3>
+                  <div style={{ marginBottom: '10px' }}>
+                    <label style={{ display: 'block' }}>Usuário:</label>
+                    <input style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="admin" />
+                  </div>
+                  <div style={{ marginBottom: '15px' }}>
+                    <label style={{ display: 'block' }}>Senha:</label>
+                    <input style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="1234" />
+                  </div>
+                  <button style={{ width: '100%', padding: '10px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }} type="submit">Entrar</button>
+                </form>
+              )}
+
+              {screen === 'dashboard' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                    <h3>📊 Painel de Controle</h3>
+                    <div>
+                      <button onClick={() => setScreen('about')} style={{ marginRight: '5px', padding: '5px 10px' }}>Sobre</button>
+                      <button onClick={() => setScreen('help')} style={{ marginRight: '5px', padding: '5px 10px' }}>Ajuda</button>
+                      <button onClick={() => setScreen('login')} style={{ padding: '5px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px' }}>Sair</button>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleCalculate} style={{ marginTop: '15px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <div>
+                        <label>Origem:</label>
+                        <input style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }} type="text" value={form.origin} onChange={e => setForm({...form, origin: e.target.value})} required placeholder="Ex: São Paulo" />
+                      </div>
+                      <div>
+                        <label>Destino:</label>
+                        <input style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }} type="text" value={form.destination} onChange={e => setForm({...form, destination: e.target.value})} required placeholder="Ex: Campinas" />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <div>
+                        <label>Distância (Km):</label>
+                        <input style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }} type="number" value={form.km} onChange={e => setForm({...form, km: e.target.value})} required placeholder="Ex: 100" />
+                      </div>
+                      <div>
+                        <label>Autonomia (Km/L):</label>
+                        <input style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }} type="number" value={form.autonomy} onChange={e => setForm({...form, autonomy: e.target.value})} required placeholder="Ex: 12" />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                      <div>
+                        <label>Preço Gasolina (R$):</label>
+                        <input style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }} type="number" step="0.01" value={form.gasPrice} onChange={e => setForm({...form, gasPrice: e.target.value})} />
+                      </div>
+                      <div>
+                        <label>Preço Álcool (R$):</label>
+                        <input style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }} type="number" step="0.01" value={form.alcPrice} onChange={e => setForm({...form, alcPrice: e.target.value})} />
+                      </div>
+                    </div>
+
+                    <button style={{ width: '100%', padding: '10px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px' }} type="submit">Calcular Rota</button>
+                  </form>
+
+                  {results && (
+                    <div style={{ marginTop: '20px', padding: '15px', background: '#e9ecef', borderRadius: '5px', borderLeft: '5px solid #28a745' }}>
+                      <h4>🏁 Previsão de Viagem:</h4>
+                      <p>⛽ <b>Combustível Necessário:</b> {results.liters} Litros</p>
+                      <p>💵 <b>Custo Estimado (Gasolina):</b> R$ {results.gasCost.toFixed(2)}</p>
+                      <p>🌱 <b>Custo Estimado (Álcool):</b> R$ {results.alcCost.toFixed(2)}</p>
+                      <p>🛣️ <b>Pedágios:</b> {results.tolls} passagens (Total: R$ {results.tollCost.toFixed(2)})</p>
+                      <p>⏱️ <b>Tempo Estimado:</b> {results.time}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {screen === 'about' && (
+                <div>
+                  <button onClick={() => setScreen('dashboard')} style={{ marginBottom: '10px' }}>← Voltar</button>
+                  <h3>👥 Nossa Equipe</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '10px' }}>
+                    <div style={{ background: '#f8f9fa', padding: '10px', borderRadius: '5px', textAlign: 'center', border: '1px solid #ddd' }}>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#ccc', margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👨‍💻</div>
+                      <b>Pedro / Sérgio</b>
+                      <p style={{ fontSize: '12px', color: '#666', margin: '5px 0 0' }}>Desenvolvedores Full Stack</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {screen === 'help' && (
+                <div>
+                  <button onClick={() => setScreen('dashboard')} style={{ marginBottom: '10px' }}>← Voltar</button>
+                  <h3>💡 Central de Ajuda</h3>
+                  <p><b>Como funciona o cálculo de pedágios?</b></p>
+                  <p style={{ color: '#555', fontSize: '14px' }}>O sistema calcula automaticamente uma praça de pedágio a cada 80km rodados no valor fixo de R$ 12,00.</p>
+                  <p><b>Rendimento do Álcool:</b></p>
+                  <p style={{ color: '#555', fontSize: '14px' }}>O cálculo baseia-se na regra de que o álcool rende em média 70% da capacidade de rodagem da gasolina.</p>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // Renderiza o componente na div #root
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TripModule />);
+    </script>
+</body>
+</html>
