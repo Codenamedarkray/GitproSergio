@@ -162,16 +162,53 @@ export default function TripModule() {
       )}
 
       {screen === 'about' && (
-        <div>
-          <h3 style={{ marginTop: 0 }}>👥 Nossa Equipe</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', marginTop: '10px' }}>
-            <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '5px', textAlign: 'center', border: '1px solid #eee' }}>
-              <b>Pedro & Sérgio</b>
-              <p style={{ fontSize: '13px', color: '#666', margin: '5px 0 0 0' }}>Desenvolvedores do Sistema</p>
-            </div>
-          </div>
-        </div>
-      )}
+  <div>
+    <h3 style={{ marginTop: 0, color: '#212529', textAlign: 'center', marginBottom: '20px' }}>👥 Nossa Equipe</h3>
+    
+    {/* Grid ajustado para exibir 3 colunas em telas médias/grandes */}
+    <div style={{ 
+      display: 'grid', 
+      gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', 
+      gap: '15px', 
+      marginTop: '10px' 
+    }}>
+      
+      {/* CARD 1: PAULO CESAR */}
+      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '5px', textAlign: 'center', border: '1px solid #eee' }}>
+        <img 
+          src="/0c7e0bac-b672-4d43-bcbb-c3bbfad57452.jpg" 
+          alt="Foto do Paulo Cesar" 
+          style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', marginBottom: '10px', border: '2px solid #007bff' }} 
+        />
+        <h4 style={{ margin: '5px 0', color: '#212529', fontSize: '15px' }}>Paulo Cesar</h4>
+        <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>Desenvolvedor Backend</p>
+      </div>
+
+      {/* CARD 2: PEDRO HENRIQUE */}
+      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '5px', textAlign: 'center', border: '1px solid #eee' }}>
+        <img 
+          src="/6ccdeaa2-345d-4119-abd8-2ac30ac79d99.jpg" 
+          alt="Foto do Pedro Henrique" 
+          style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', marginBottom: '10px', border: '2px solid #007bff' }} 
+        />
+        <h4 style={{ margin: '5px 0', color: '#212529', fontSize: '15px' }}>Pedro Henrique</h4>
+        <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>Desenvolvedor Frontend</p>
+      </div>
+
+      {/* CARD 3: KAIO BURILLI */}
+      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '5px', textAlign: 'center', border: '1px solid #eee' }}>
+        <img 
+          src="/eff0b287-0e77-4c79-923e-8318813d15df.jpg" 
+          alt="Foto do Kaio Burilli" 
+          style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', marginBottom: '10px', border: '2px solid #007bff' }} 
+        />
+        <h4 style={{ margin: '5px 0', color: '#212529', fontSize: '15px' }}>Kaio Burilli</h4>
+        <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>Gerente de Testes / Quality Assurance</p>
+      </div>
+
+    </div>
+  </div>
+)}
 
       {screen === 'help' && (
         <div>
